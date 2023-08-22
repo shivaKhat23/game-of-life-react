@@ -1,6 +1,8 @@
+import { Restore } from '@mui/icons-material';
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { Button, Typography } from '@mui/material';
+import SpeedIcon from '@mui/icons-material/Speed';
+import { Button, Slider, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ElementRef, useEffect, useRef, useState } from 'react';
@@ -12,6 +14,7 @@ import { Point } from './Utils/Point.ts';
 
 function App() {
   let [isStarted, setIsStarted] = useState(false);
+  let [speed, setSpeed] = useState(1);
   const canvasRef = useRef<ElementRef<'canvas'>>(null);
   const squareSizeRef = useRef(20);
   const numberOfColumnsRef = useRef(80);
@@ -57,12 +60,12 @@ function App() {
       timerRef.current = setInterval(() => {
         console.log(`timer called !: ${isStarted}`);
         start(cellsRef.current, numberOfColumnsRef.current, numberOfRowsRef.current);
-      }, 1000);
+      }, 1000 / speed);
       return () => clearInterval(timerRef.current);
     } else {
       clearInterval(timerRef.current);
     }
-  }, [isStarted]);
+  }, [isStarted, speed]);
 
   function toggleCell(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     const canvas: HTMLCanvasElement = canvasRef.current as HTMLCanvasElement;
@@ -71,6 +74,15 @@ function App() {
     const rowNumber = Math.floor((e.clientY - canvasRect.top) / squareSizeRef.current);
     const index = rowNumber * numberOfColumnsRef.current + columnNumber;
     cellsRef.current[index].toggle();
+  }
+
+  function reset() {
+    setIsStarted(false);
+    init();
+  }
+
+  function adjustSpeed(event: Event, newValue: number | number[]) {
+    setSpeed(newValue as number);
   }
 
   return (
@@ -83,7 +95,7 @@ function App() {
         <Box sx={{ display: 'grid', placeItems: 'center', width: '100vw' }}>
           <canvas ref={canvasRef} onClick={(e) => toggleCell(e)}></canvas>
         </Box>
-        <Box sx={{ width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', marginBottom: 6 }}>
+        <Box sx={{ width: '100vw', display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
           <Button
             variant='contained'
             startIcon={isStarted ? <PauseIcon /> : <PlayArrowIcon />}
@@ -91,6 +103,26 @@ function App() {
             onClick={() => setIsStarted(!isStarted)}
           >
             Start
+          </Button>
+          <Box sx={{ width: '20%', mx: 4, mt: 1, display: 'flex', flexDirection: 'column' }}>
+            <SpeedIcon sx={{ alignSelf: 'center' }} />
+            <Slider
+              aria-label="Speed"
+              value={speed}
+              onChange={adjustSpeed}
+              marks
+              step={1}
+              min={1}
+              max={5}
+            />
+          </Box>
+          <Button
+            variant='contained'
+            startIcon={<Restore />}
+            sx={{ m: 1, p: 2 }}
+            onClick={reset}
+          >
+            Reset
           </Button>
         </Box>
       </Box>
